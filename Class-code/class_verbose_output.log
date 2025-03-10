@@ -1,0 +1,6 @@
+A(log(0.19)) = 1.002499612617456
+b(log(0.19)) = -1.959930435713995
+mu(log(0.19)) = 4.1233281729556595
+CLASS computation finished successfully.
+dict_keys(['z', 'proper time [Gyr]', 'conf. time [Mpc]', 'H [1/Mpc]', 'comov. dist.', 'ang.diam.dist.', 'lum. dist.', 'comov.snd.hrz.', '(.)rho_g', '(.)rho_b', '(.)rho_cdm', '(.)rho_ncdm[0]', '(.)p_ncdm[0]', '(.)rho_ncdm[1]', '(.)p_ncdm[1]', '(.)rho_lambda', '(.)rho_ur', '(.)rho_crit', '(.)rho_tot', '(.)p_tot', '(.)p_tot_prime', 'gr.fac. D', 'gr.fac. f'])
+Error during CLASS computation: 'classy.Class' object has no attribute 'get_current_derived_parametersrameters'
