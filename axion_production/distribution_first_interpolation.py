@@ -242,7 +242,7 @@ if __name__ == "__main__":
     file_number = 3
     selected_file_path = f'../Maxim-data/{filename_dist_arr[file_number]}'  # Set the correct file path
     interpolator = FirstInterpolation(selected_file_path)
-    index = 180
+    index = 10
     # --- Input Data ---
     axion_mass = interpolator.get_axion_masses()[index]
     decay_constant = interpolator.calculate_fa(axion_mass)

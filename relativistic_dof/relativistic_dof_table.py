@@ -18,7 +18,7 @@ The script allows:
   - Visualization of the evolution of relativistic degrees of freedom.
 
 Author: Krzysztof Szafrański
-Date: 2025-02-03
+Date: 2025-03-17
 """
 
 import pandas as pd
@@ -26,7 +26,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import PchipInterpolator
 
-# ####################################### FIRST IMPLEMENTATION ####################################################### #
+# ####################################### IMPLEMENTATION ############################################################# #
 # -------------------------------------------------------------------------------------------------------
 # EXTENDED DATASET: RELATIVISTIC DEGREES OF FREEDOM
 # -------------------------------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ data_extended = {
 }
 
 # ####################################### MAIN CLASS ################################################################# #
-class RelativisticDegreesOfFreedom:
+class RelativisticDOFTable:
     """
     A class to model and interpolate relativistic degrees of freedom
     as functions of temperature (kB*T) using PCHIP interpolation.
@@ -123,7 +123,7 @@ class RelativisticDegreesOfFreedom:
 
         return self.interp[dof_type](kB_T_values)
 
-    def compute_decoupling_dof(self, interaction_mass, x_dec):
+    def compute_decoupling_dof(self, interaction_mass, x_dec, dof_type="g_eff_s"):
         """
         Computes the relativistic degrees of freedom at the decoupling moment
         based on the interaction process responsible for axion production.
@@ -133,202 +133,9 @@ class RelativisticDegreesOfFreedom:
                                       Example: For muon scattering, this should be m_μ.
             x_dec (float): Dimensionless decoupling parameter, defined as x = m/T,
                            where m is the mass of interacting particles.
-
-        Returns:
-            float: Interpolated entropy degrees of freedom g_eff_s at the decoupling moment.
-        """
-        # Compute the temperature at decoupling: kB*T = m_interaction / x_dec
-        kB_T_dec = interaction_mass / x_dec
-
-        # Get the interpolated degrees of freedom at decoupling
-        g_decoupling_dof = self.interp["g_eff_s"](kB_T_dec)
-
-        return g_decoupling_dof
-
-    @staticmethod
-    def compute_decoupling_temperature(interaction_mass, x_dec):
-        """
-        Computes the decoupling temperature at the decoupling moment
-        based on the interaction process responsible for axion production.
-
-        Parameters:
-            interaction_mass (float): Mass of the interacting particles in eV.
-                                      Example: For muon scattering, this should be m_μ.
-            x_dec (float): Dimensionless decoupling parameter, defined as x = m/T,
-                           where m is the mass of interacting particles.
-
-        Returns:
-            float: Interpolated entropy degrees of freedom g_eff_s at the decoupling moment.
-        """
-        # Compute the temperature at decoupling: kB*T = m_interaction / x_dec
-        kB_T_dec = interaction_mass / x_dec  # [eV]
-
-        return kB_T_dec
-
-    # ----------------------------------------- ACCESSORS ---------------------------------------------------------- #
-    def get_min_kB_T(self):
-        """
-        Returns the minimum temperature (kB*T) available in the dataset.
-
-        Returns:
-            float: Minimum kB*T value in eV.
-        """
-        return self.min_kB_T
-
-    def get_max_kB_T(self):
-        """
-        Returns the maximum temperature (kB*T) available in the dataset.
-
-        Returns:
-            float: Maximum kB*T value in eV.
-        """
-        return self.max_kB_T
-
-# ####################################### SECOND IMPLEMENTATION ###################################################### #
-# -------------------------------------------------------------------------------------------------------
-# FITTING FUNCTION: RELATIVISTIC DEGREES OF FREEDOM
-# -------------------------------------------------------------------------------------------------------
-# This approach includes g_star_p, and g_star_s.
-# - The values represent different relativistic degrees of freedom as a function of temperature (kB*T).
-# - The temperature values (kB_T) are given in electron volts (eV).
-# - This apprache coincides with paiper: 1803.01038
-
-class RelativisticDegreesOfFreedomFitModel:
-    """
-    A class to calculate the relativistic degree of freedom as function
-    of temperature (kB*Y) using fitting function. This approche has been
-    developed and presented in: 1803.01038
-
-    Attributes:
-        min_kB_T (float): Minimum kB*T value available in the dataset.
-        max_kB_T (float): Maximum kB*T value available in the dataset.
-    """
-    def __init__(self):
-        """
-        Initializes the class by storing some constants and
-        Coefficients for the fitting functions.
-
-        Degrees of freedom available:
-        - g_eff_n: Effective degrees of freedom for number density.
-        - g_eff_e: Effective degrees of freedom for energy density.
-        """
-        self.dof_types = ["g_eff_s", "g_eff_e"]
-
-        # Fixed particles masses
-        self.m_e, self.m_mu, self.m_pi0, self.m_piPlus = 0.511e-3, 0.1056, 0.135, 0.140  # Masses in GeV
-        self.m_1, self.m_2, self.m_3, self.m_4 = 0.5, 0.77, 1.2, 2  # Masses in GeV
-
-        # coefficients
-        self.cff_arr = dict()
-        self.cff_arr["a_i"] = np.array([
-            1, 1.11724E+00, 3.12672E-01, -4.68049E-02,
-            -2.65004E-02, -1.19760E-03, 1.82812E-04, 1.36436E-04,
-            8.55051E-05, 1.22840E-05, 3.82259E-07, -6.87035E-09
-        ])
-        self.cff_arr["b_i"] = np.array([
-            1.43382E-02, 1.37559E-02, 2.92108E-03, -5.38533E-04,
-            -1.62496E-04, -2.87906E-05, -3.84278E-06, 2.78776E-06,
-            7.40342E-07, 1.17210E-07, 3.72499E-09, -6.74107E-11
-        ])
-        self.cff_arr["c_i"] = np.array([
-            1, 6.07869E-01, -1.54485E-01, -2.24034E-01,
-            -2.82147E-02, 2.90620E-02, 6.86778E-03, -1.00005E-03,
-            -1.69104E-04, 1.06301E-05, 1.69528E-06, -9.33311E-08
-        ])
-        self.cff_arr["d_i"] = np.array([
-            7.07388E+01, 9.18011E+01, 3.31892E+01, -1.39779E+00,
-            -1.52558E+00, -1.97857E-02, -1.60146E-01, 8.22615E-05,
-            2.02651E-02, -1.82134E-05, 7.83943E-05, 7.13518E-05
-        ])
-
-        # Set the range of kB*T values, which is interesting
-        self.min_kB_T = 1.0e4  # [eV]
-        self.max_kB_T = 1e13   # [eV]
-
-    # ------------------------------------ FUNCTIONS ----------------------------------------------------------------- #
-    @staticmethod
-    def f_p(x):
-        return np.exp(-1.04855 * x) * (1 + 1.03757 * x + 0.508630 * x ** 2 + 0.0893988 * x ** 3)
-
-    @staticmethod
-    def b_p(x):
-        return np.exp(-1.03149 * x) * (1 + 1.03317 * x + 0.398264 * x ** 2 + 0.0648056 * x ** 3)
-
-    @staticmethod
-    def f_s(x):
-        return np.exp(-1.04190 * x) * (1 + 1.03400 * x + 0.456426 * x ** 2 + 0.0595248 * x ** 3)
-
-    @staticmethod
-    def b_s(x):
-        return np.exp(-1.03365 * x) * (1 + 1.03397 * x + 0.342548 * x ** 2 + 0.0506182 * x ** 3)
-
-    @staticmethod
-    def S_fit(x):
-        return 1 + 7 / 4 * np.exp(-1.0419 * x) * (1 + 1.034 * x + 0.456426 * x ** 2 + 0.0595249 * x ** 3)
-
-    # ------------------------------------ COMPUTE DOF --------------------------------------------------------------- #
-    def get_degrees_of_freedom(self, kB_T_values, dof_type="g_eff_s"):
-        """
-        Predicts the relativistic degrees of freedom for a given temperature (kB*T).
-
-        Parameters:
-            kB_T_values (float or array-like): Temperature values in units of eV (kB*T).
             dof_type (str): Type of relativistic degree of freedom to compute.
-                            Options: "g_eff_e", "g_eff_s".
-                            Default: "g_eff_s" (entropy density degrees of freedom).
-
-        Returns:
-            float or np.ndarray: Interpolated value(s) of the specified degree of freedom.
-        """
-        # Check correction type
-        if dof_type not in self.dof_types:
-            raise ValueError(f"Invalid degree of freedom type '{dof_type}'. Choose from: {self.dof_types}")
-
-        # Change to GeV
-        kB_T_GeV = kB_T_values * 10**(-9)
-
-        # --- First region
-        if kB_T_GeV <= 0.12:
-            if dof_type=="g_eff_s":
-                g_starS =  2.008 + \
-                           1.923 * self.S_fit(self.m_e / kB_T_GeV) + \
-                           3.442 * self.f_s(self.m_e / kB_T_GeV) + \
-                           3.468 * self.f_s(self.m_mu / kB_T_GeV) + \
-                           1.034 * self.b_s(self.m_pi0 / kB_T_GeV) + \
-                           2.068 * self.b_s(self.m_piPlus / kB_T_GeV) + \
-                           4.16  * self.b_s(self.m_1 / kB_T_GeV) + \
-                           0.55  * self.b_s(self.m_2 / kB_T_GeV) + \
-                           90    * self.b_s(self.m_3 / kB_T_GeV) + \
-                           6209  * self.b_s(self.m_4 / kB_T_GeV)
-
-                return g_starS
-
-        # --- Second region
-        elif kB_T_GeV <= 1e16:
-            t = np.log(kB_T_GeV)  # Convert to GeV scale
-            sum_ai = np.sum(self.cff_arr["a_i"][:, None] * t ** np.arange(len(self.cff_arr["a_i"]))[:, None], axis=0)
-            sum_bi = np.sum(self.cff_arr["b_i"][:, None] * t ** np.arange(len(self.cff_arr["b_i"]))[:, None], axis=0)
-            sum_ci = np.sum(self.cff_arr["c_i"][:, None] * t ** np.arange(len(self.cff_arr["c_i"]))[:, None], axis=0)
-            sum_di = np.sum(self.cff_arr["d_i"][:, None] * t ** np.arange(len(self.cff_arr["d_i"]))[:, None], axis=0)
-
-            g_starE = sum_ai / sum_bi
-            g_starS = g_starE / (1 + sum_ci / sum_di)
-
-            if dof_type=="g_eff_s":
-                return g_starS
-            elif dof_type=="g_eff_e":
-                return g_starE
-
-    def compute_decoupling_dof(self, interaction_mass, x_dec):
-        """
-        Computes the relativistic degrees of freedom at the decoupling moment
-        based on the interaction process responsible for axion production.
-
-        Parameters:
-            interaction_mass (float): Mass of the interacting particles in eV.
-                                      Example: For muon scattering, this should be m_μ.
-            x_dec (float): Dimensionless decoupling parameter, defined as x = m/T,
-                           where m is the mass of interacting particles.
+                Options: "g_eff_n", "g_eff_e", "g_eff_p", "g_eff_s".
+                Default: "g_eff_s" (entropy density degrees of freedom).
 
         Returns:
             float: Interpolated entropy degrees of freedom g_eff_s at the decoupling moment.
@@ -337,9 +144,9 @@ class RelativisticDegreesOfFreedomFitModel:
         kB_T_dec = interaction_mass / x_dec
 
         # Get the interpolated degrees of freedom at decoupling
-        g_decoupling_dof = self.get_degrees_of_freedom(kB_T_dec, dof_type="g_eff_s")
+        g_decoupling_dof = self.interp[dof_type](kB_T_dec)
 
-        return g_decoupling_dof
+        return np.float64(g_decoupling_dof)
 
     @staticmethod
     def compute_decoupling_temperature(interaction_mass, x_dec):
@@ -354,7 +161,7 @@ class RelativisticDegreesOfFreedomFitModel:
                            where m is the mass of interacting particles.
 
         Returns:
-            float: Interpolated entropy degrees of freedom g_eff_s at the decoupling moment.
+            float: The decoupling temperature at the decoupling moment.
         """
         # Compute the temperature at decoupling: kB*T = m_interaction / x_dec
         kB_T_dec = interaction_mass / x_dec  # [eV]
@@ -379,7 +186,6 @@ class RelativisticDegreesOfFreedomFitModel:
             float: Maximum kB*T value in eV.
         """
         return self.max_kB_T
-
 
 # ####################################### CROSS CHECKS ############################################################### #
 if __name__ == "__main__":
@@ -388,7 +194,7 @@ if __name__ == "__main__":
     The x-axis and y-axis are properly formatted with log-scaled scientific notation ticks.
     """
     # Initialize the class
-    RelativisticDOF = RelativisticDegreesOfFreedom()
+    RelativisticDOF = RelativisticDOFTable()
 
     # ------------------------------ CHECK: AXION MASS IN MUON SCATTERING -------------------------------------------- #
     # Typical range of axion mass

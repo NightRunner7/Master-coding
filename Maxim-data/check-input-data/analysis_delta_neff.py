@@ -1,9 +1,7 @@
-
-
 import numpy as np
 from scipy.integrate import quad
 # --- FROM EXTERNAL FILES ---
-from relativistic_degrees_of_freedom import RelativisticDegreesOfFreedom
+from relativistic_dof import RelativisticDOFRegistry
 from axion_production.distribution_first_interpolation import FirstInterpolation
 
 class AxionModelMaximDistribution(FirstInterpolation):
@@ -46,7 +44,7 @@ class AxionModelMaximDistribution(FirstInterpolation):
         super().__init__(file_path)
 
         # --- Relativistic Degrees of Freedom Handler ---
-        RelativisticDOF = RelativisticDegreesOfFreedom()
+        self.RelativisticDOF = RelativisticDOFRegistry.get_method("lattice")
 
         # --- Physical Constants ---
         self.con = dict()  # dictionary with constants
@@ -57,11 +55,13 @@ class AxionModelMaximDistribution(FirstInterpolation):
         self.con["g_dof_photon"] = 2  # photon degrees of freedom
 
         # --- Compute Relativistic Degrees of Freedom Ratios ---
-        self.con["g_star_s_today"] = RelativisticDOF.get_degrees_of_freedom(self.con["kB_T_today"], dof_type="g_eff_s")
-        self.con["g_star_s_axion_decoupling"] = RelativisticDOF.compute_decoupling_dof(self.con["particle_mass"], self.con["x_dec"])
-
-        # self.con["g_star_s_today"] = 3.931
-        # self.con["g_star_s_axion_decoupling"] = 14.926972901348597
+        self.con["g_star_s_today"] = self.RelativisticDOF.get_degrees_of_freedom(self.con["kB_T_today"],
+                                                                                 dof_type="g_eff_s")
+        self.con["g_star_s_axion_decoupling"] = self.RelativisticDOF.compute_decoupling_dof(self.con["particle_mass"],
+                                                                                            self.con["x_dec"])
+        # FOR TAON DECAY: MAXIM SETTING
+        # self.con["g_star_s_today"] = 43/11
+        # self.con["g_star_s_axion_decoupling"] = 15.4185
 
         # --- Limits ---
         self.con["q_max"] = 19.99
@@ -130,9 +130,32 @@ class AxionModelMaximDistribution(FirstInterpolation):
         return discrete_data
 
     # ----------------------------------------- GET DATA ------------------------------------------------ #
+    def get_physical_constant(self, physical_constant_name):
+        """Return one of the values from the physical constant dictionary"""
+        if physical_constant_name not in self.con.keys():
+            raise ValueError(f"Invalid physcial constant name '{physical_constant_name}'. Choose from: {list(self.con.keys())}")
+
+        return self.con[physical_constant_name]
+
     def get_fa_and_delta_neff(self):
         """Return fa and calculated extra relativistic degrees of freedom for this fa"""
         return self.output
+
+    # ----------------------------------------- CHANGE SETTINGS ----------------------------------------- #
+    def change_physical_constant(self, physical_constant_name, physical_constant_value):
+        """Function to change one physical constant / setting of simulation"""
+        if physical_constant_name=="g_star_s_today":
+            self.con[physical_constant_name] = physical_constant_value
+        elif physical_constant_name=="g_star_s_axion_decoupling":
+            self.con[physical_constant_name] = physical_constant_value
+        elif physical_constant_name=="g_dof_axion":
+            self.con[physical_constant_name] = physical_constant_value
+        elif physical_constant_name=="g_dof_photon":
+            self.con[physical_constant_name] = physical_constant_value
+        elif physical_constant_name=="x_dec":
+            self.con[physical_constant_name] = physical_constant_value
+            self.con["g_star_s_axion_decoupling"] = self.RelativisticDOF.compute_decoupling_dof(self.con["particle_mass"],
+                                                                                                self.con["x_dec"])
 
 # ####################################### CROSS CHECKS ############################################################### #
 if __name__ == "__main__":
@@ -168,12 +191,15 @@ if __name__ == "__main__":
     # Read data while skipping the first row (header)
     data = np.loadtxt(filename_neff, delimiter=",", skiprows=1)
 
+    # --- PRINTING SOME INFORMATION ---
     # Extract the first and third columns
     fa_arr_MAXIM = data[:, 0]  # First column
     delta_Neff_MAXIM = data[:, 2]  # Third column
 
     N_distribution_Maxim = len(fa_arr_MAXIM)
     print("N_distribution_Maxim:", N_distribution_Maxim)
+    decouple_dof_g_s = axionModel.get_physical_constant("g_star_s_axion_decoupling")
+    print("g_star_s_axion_decoupling:", decouple_dof_g_s)
 
     # ---------------------------- DO COMPARISON PLOT: MAXIM RESULTS VS OUR INTEGRATION ------------------------------ #
     fig, axs = plt.subplots(figsize=(8, 6))
