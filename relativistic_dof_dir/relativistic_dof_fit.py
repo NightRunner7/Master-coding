@@ -134,7 +134,7 @@ class RelativisticDOFFitModel:
                                      1.034 * self.b_s(self.m_pi0 / kB_T_GeV[mask_low]) +
                                      2.068 * self.b_s(self.m_piPlus / kB_T_GeV[mask_low]) +
                                      4.160 * self.b_s(self.m_1 / kB_T_GeV[mask_low]) +
-                                     0.550 * self.b_s(self.m_2 / kB_T_GeV[mask_low]) +
+                                     30.55 * self.b_s(self.m_2 / kB_T_GeV[mask_low]) +
                                      90    * self.b_s(self.m_3 / kB_T_GeV[mask_low]) +
                                      6209  * self.b_s(self.m_4 / kB_T_GeV[mask_low]))
             elif dof_type == "g_eff_e":

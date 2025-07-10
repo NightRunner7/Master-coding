@@ -279,7 +279,7 @@ class ParametersAxionMassDependence(FirstInterpolation):
         # Store in class attribute
         self.fitting_functions["test_fit"] = new_fits
 
-    def compute_polynomial_fit(self, dist="f(q)_q2", poly_order=15):
+    def compute_polynomial_fit(self, dist="f(q)_q2", poly_order=13):
         """
         Fit A(m_a), b(m_a), and μ(m_a) as polynomials of log(axion mass).
         Stores the new polynomial fit functions in `self.new_fit_parameters_poly`.

@@ -44,7 +44,7 @@ class AxionModelMaximDistribution(FirstInterpolation):
         super().__init__(file_path)
 
         # --- Relativistic Degrees of Freedom Handler ---
-        self.RelativisticDOF = RelativisticDOFRegistry.get_method("lattice")
+        self.RelativisticDOF = RelativisticDOFRegistry.get_method("fit")
 
         # --- Physical Constants ---
         self.con = dict()  # dictionary with constants
@@ -200,6 +200,8 @@ if __name__ == "__main__":
     print("N_distribution_Maxim:", N_distribution_Maxim)
     decouple_dof_g_s = axionModel.get_physical_constant("g_star_s_axion_decoupling")
     print("g_star_s_axion_decoupling:", decouple_dof_g_s)
+    g_star_s_today = axionModel.get_physical_constant("g_star_s_today")
+    print("g_star_s_today:", g_star_s_today)
 
     # ---------------------------- DO COMPARISON PLOT: MAXIM RESULTS VS OUR INTEGRATION ------------------------------ #
     fig, axs = plt.subplots(figsize=(8, 6))
