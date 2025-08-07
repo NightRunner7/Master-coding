@@ -250,8 +250,8 @@ if __name__ == "__main__":
     file_number = 4
     selected_file_path = f'../real_distribution/data-new/{filename_dist_arr[file_number]}'  # Set the correct file path
     interpolator = FirstInterpolation(selected_file_path)
-    index = 198
-    flag_save_plot = True
+    index = 10
+    flag_save_plot = False
     # --- Input Data ---
     axion_mass = interpolator.get_axion_masses()[index]
     decay_constant = interpolator.calculate_fa(axion_mass)

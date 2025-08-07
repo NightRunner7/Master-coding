@@ -7,7 +7,7 @@ from distribution_first_interpolation import FirstInterpolation
 
 class AxionModelDistribution(FirstInterpolation):
     # ----------------------------------------- INITIALIZATION ------------------------------------------------------ #
-    def __init__(self, process_name, file_path, particle_mass, x_dec):
+    def __init__(self, process_name, file_path, particle_mass):
         """
         Initialize axion model class for taon decay.
 
@@ -45,7 +45,7 @@ class AxionModelDistribution(FirstInterpolation):
 
         # --- Constants corresponding to axion ---
         self.con["g_dof_axion"] = 1  # axion degrees of freedom
-        self.con["x_dec"] = x_dec    # axion decoupling scale
+        self.con["x_dec"] = 30       # axion decoupling scale
 
         # --- Other Constants ---
         self.con["particle_mass"] = particle_mass  # [eV]
@@ -62,6 +62,7 @@ class AxionModelDistribution(FirstInterpolation):
 
         # --- Limits ---
         self.con["q_max"] = 19.99
+        self.con["q_min"] = 0.01
 
         # --- Find fa and ΔN_eff ---
         self.output = self.calculate_delta_n_eff()
@@ -86,7 +87,7 @@ class AxionModelDistribution(FirstInterpolation):
         Returns:
             Evaluated function values at q.
         """
-        return q ** 2 * (np.exp(A * np.sqrt(1 + q ** 2) - b) + mu) ** -1
+        return q ** 2 * (np.exp(A * np.sqrt(1 + q ** 2) - b) + mu) ** (-1)
 
     @staticmethod
     def f_approx_q3(q, A, b, mu):
@@ -96,7 +97,7 @@ class AxionModelDistribution(FirstInterpolation):
         Returns:
             Evaluated function values at q.
         """
-        return q ** 3 * (np.exp(A * np.sqrt(1 + q ** 2) - b) + mu) ** -1
+        return q ** 3 * (np.exp(A * np.sqrt(1 + q ** 2) - b) + mu) ** (-1)
 
     # ----------------------------------------- SECOND INTERPOLATION DISTRIBUTION ------------------------------------ #
     def generate_second_interpolation(self, axion_mass, q_arr, dist="f(q)_q2"):
@@ -165,7 +166,8 @@ class AxionModelDistribution(FirstInterpolation):
         )
 
         # --- Integration limits
-        q_limit = self.con["q_max"]
+        q_max = self.con["q_max"]
+        q_min = self.con["q_min"]
 
         # --- Select integrand functions
         integrand_q3 = self.f_approx_q3
@@ -173,7 +175,7 @@ class AxionModelDistribution(FirstInterpolation):
 
         # --- Initialize result storage
         N = self.distributions["input"]["N"]
-        fa_arr = np.array(self.param["input"]["fa_arr"])
+        fa_arr = self.param["input"]["fa_arr"]
         log_ma_arr = np.log(self.param["input"]["ma_arr"])
         delta_neff_arr = np.zeros(N)
         ya_arr = np.zeros(N)
@@ -184,9 +186,8 @@ class AxionModelDistribution(FirstInterpolation):
             val_A = self.fitting_functions["A"](log_ma)
             val_b = self.fitting_functions["b"](log_ma)
             val_mu = self.fitting_functions["mu"](log_ma)
-            integral_q3, _ = quad(integrand_q3, 0, q_limit, args=(val_A, val_b, val_mu), limit=200)
-            integral_q2, _ = quad(integrand_q2, 0, q_limit, args=(val_A, val_b, val_mu), limit=200)
-
+            integral_q3, _ = quad(integrand_q3, q_min, q_max, args=(val_A, val_b, val_mu), epsabs=1e-10, epsrel=1e-10, limit=500)
+            integral_q2, _ = quad(integrand_q2, q_min, q_max, args=(val_A, val_b, val_mu), epsabs=1e-10, epsrel=1e-10, limit=500)
             delta_neff_arr[i] = const_delta_neff * integral_q3
             ya_arr[i] = const_ya * integral_q2
             # ya_arr[i] = (delta_neff_arr[i] / 75.64)**(3/4)
@@ -198,6 +199,25 @@ class AxionModelDistribution(FirstInterpolation):
         }
 
     # ----------------------------------------- GET DATA ------------------------------------------------ #
+    def get_fitted_parameters(self, m_a):
+        """
+        Retrieve the fitted parameters A, b, and μ for a given axion mass.
+
+        Parameters:
+        -----------
+        - m_a (float): Axion mass in eV.
+
+        Returns:
+        --------
+        tuple: (A, b, μ) best-fit parameters for the given axion mass.
+        """
+        log_m_a = np.log(m_a)
+        return (
+            self.fitting_functions["A"](log_m_a),
+            self.fitting_functions["b"](log_m_a),
+            self.fitting_functions["mu"](log_m_a)
+        )
+
     def get_physical_constant(self, physical_constant_name):
         """Return one of the values from the physical constant dictionary"""
         if physical_constant_name not in self.con.keys():

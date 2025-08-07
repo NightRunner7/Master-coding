@@ -41,6 +41,7 @@ class ParametersAxionMassDependence(FirstInterpolation):
         super().__init__(file_path)
 
         # --- Load production process dynamically (module with stateful API) ---
+        self.process_name = process_name
         self.process = get_process(process_name)
 
         # --- Store available fitting functions ---
@@ -164,10 +165,10 @@ class ParametersAxionMassDependence(FirstInterpolation):
         weights = (1.0 + q_values ** 2) / (1.0 + q_values)
 
         # --- Perform the fit
-        # result: tuple = curve_fit(model_functions[dist], q_values, data_to_fit, method='trf')
-        result: tuple = curve_fit(model_functions[dist], q_values, data_to_fit, method='lm')
-        # result: tuple = curve_fit(model_functions[dist], q_values, data_to_fit,
-        #                        p0=initial_guess, method="lm", sigma=weights)
+        if self.process_name == "tau_scattering":
+            result: tuple = curve_fit(model_functions[dist], q_values, data_to_fit, method='trf')
+        else:
+            result: tuple = curve_fit(model_functions[dist], q_values, data_to_fit, method='lm')
         popt, pcov = result
         return {"A": popt[0], "b": popt[1], "mu": popt[2]}
 
