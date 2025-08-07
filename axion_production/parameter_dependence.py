@@ -19,7 +19,7 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
 # --- FROM EXTERNAL FILES ---
 from axion_production import get_process
-from axion_production.distribution_first_interpolation import FirstInterpolation
+from distribution_first_interpolation import FirstInterpolation
 
 class ParametersAxionMassDependence(FirstInterpolation):
     """
@@ -450,10 +450,10 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # --- Set The Data ---
-    # selected_file_path = '../Maxim-data/ma_distributions_mu_scattering.dat'  # Set the correct file path
+    # selected_file_path = '../real_distribution/ma_distributions_mu_scattering.dat'  # Set the correct file path
     # parameterDependence = ParametersAxionMassDependence("muon_scattering", selected_file_path)
-    # selected_file_path = '../Maxim-data/Distributions_fa_tau_dec.dat'  # Set the correct file path
-    selected_file_path = '../Maxim-data/Distributions_fa_tau_dec.dat'  # Set the correct file path
+    # selected_file_path = '../real_distribution/Distributions_fa_tau_dec.dat'  # Set the correct file path
+    selected_file_path = '../real_distribution/Distributions_fa_tau_dec.dat'  # Set the correct file path
     parameterDependence = ParametersAxionMassDependence("taon_decay", selected_file_path)
 
 

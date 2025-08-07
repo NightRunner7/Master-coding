@@ -374,7 +374,6 @@ class RelativisticDegreesOfFreedomFitModel:
     def get_max_kB_T(self):
         """
         Returns the maximum temperature (kB*T) available in the dataset.
-
         Returns:
             float: Maximum kB*T value in eV.
         """

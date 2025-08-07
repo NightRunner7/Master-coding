@@ -1,6 +1,6 @@
-from relativistic_dof_table import RelativisticDOFTable
-from relativistic_dof_fit import RelativisticDOFFitModel
-from relativistic_dof_lattice import RelativisticDOFLattice
+from .relativistic_dof_table import RelativisticDOFTable
+from .relativistic_dof_fit import RelativisticDOFFitModel
+from .relativistic_dof_lattice import RelativisticDOFLattice
 
 class RelativisticDOFRegistry:
     """

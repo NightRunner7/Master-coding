@@ -93,6 +93,8 @@ class FirstInterpolation:
         self.compute_distributions()  # Compute f(q), f(q)*q, etc.
         # self.param["input"]["fa_arr"] = self.calculate_fa(self.param["input"]["ma_arr"])
         self.param["input"]["ma_arr"] = self.calculate_ma(self.param["input"]["fa_arr"])
+        self.param["input"]["ma_max"] = max(self.param["input"]["ma_arr"])
+        self.param["input"]["ma_min"] = min(self.param["input"]["ma_arr"])
 
         # --- Perform first interpolation ---
         self.interpolate_distributions()
@@ -213,6 +215,12 @@ class FirstInterpolation:
         """Return all stored axion masses in eV."""
         return self.param["input"]["ma_arr"]
 
+    def get_max_min_ma(self):
+        """Return the maximum and minimum axion masses from the input data."""
+        ma_max = self.param["input"]["ma_max"]
+        ma_min = self.param["input"]["ma_min"]
+        return ma_max, ma_min
+
     def get_decay_constants(self):
         """Return all stored axion decay constants in GeV."""
         return self.param["input"]["fa_arr"]
@@ -236,13 +244,14 @@ if __name__ == "__main__":
 
     # --- ALL STORED FILES ---
     filename_dist_arr = ["Distributions_fa_e_scat.dat", "Distributions_fa_mu_dec.dat", "Distributions_fa_mu_scat.dat",
-                         "Distributions_fa_tau_dec.dat", "Distributions_fa_tau_scat.dat"]
+                         "Distributions_fa_tau_dec_extended.dat", "Distributions_fa_tau_scat_extended.dat"]
 
     # --- Set The Data ---
-    file_number = 3
-    selected_file_path = f'../Maxim-data/{filename_dist_arr[file_number]}'  # Set the correct file path
+    file_number = 4
+    selected_file_path = f'../real_distribution/data-new/{filename_dist_arr[file_number]}'  # Set the correct file path
     interpolator = FirstInterpolation(selected_file_path)
-    index = 10
+    index = 198
+    flag_save_plot = True
     # --- Input Data ---
     axion_mass = interpolator.get_axion_masses()[index]
     decay_constant = interpolator.calculate_fa(axion_mass)
@@ -305,7 +314,11 @@ if __name__ == "__main__":
 
     # Adjust layout
     plt.tight_layout()
-    plt.show()
+    if flag_save_plot:
+        plt.savefig(f'distribution-{index}.png', format='png', dpi=300)
+        plt.close()
+    else:
+        plt.show()
 
     # --- GIVE SOME BASIC INFO ABOUT STORED DATA ---
     axion_masses = interpolator.get_axion_masses()

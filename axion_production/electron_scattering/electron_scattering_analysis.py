@@ -51,7 +51,7 @@ from scipy.integrate import quad
 # --- FROM EXTERNAL FILES ---
 from axion_production.electron_scattering import evaluate_parameter
 from relativistic_degrees_of_freedom import RelativisticDegreesOfFreedom
-from axion_production.distribution_first_interpolation import FirstInterpolation
+from distribution_first_interpolation import FirstInterpolation
 
 class ElectronScatteringModel(FirstInterpolation):
     """
