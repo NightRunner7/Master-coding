@@ -229,7 +229,7 @@ class AxionModelMaximDistribution(FirstInterpolation):
         """Return fa and calculated extra relativistic degrees of freedom for this fa"""
         return self.output
 
-    def get_ma_fixed_wa(self, fixed_wa):
+    def get_ma_fixed_wa(self, fixed_wa, fitMethod=False):
         """
         Return the axion mass array m_a[i] (eV) required to produce a given
         physical density parameter fixed_wa = Ω_a h^2, for each entry in
@@ -244,16 +244,27 @@ class AxionModelMaximDistribution(FirstInterpolation):
             self.con["rho_crit"]  : critical density *in the same convention*
                                     used in the ω_a definition (see notes above), [h^2 * eV * cm^-3]
         """
-        Y = np.asarray(self.output["ya"], dtype=float)
+        if fitMethod:
+            Y = np.asarray(self.output["ya"], dtype=float)
+            factor = self.con["rho_crit"] / self.con["s0"]  # [eV]
+            # Fit coef
+            A = 0.14
+            b = -1.1
+            omega_m = 0.3157 * 0.6745**2
+            # Vectorized computation
+            ma_arr = (A * 1000**b * omega_m * factor/Y)**(1/(1+b)) # [eV]
+            return ma_arr
+        else:
+            Y = np.asarray(self.output["ya"], dtype=float)
 
-        if np.any(Y <= 0):
-            raise ValueError("Encountered non-positive yield(s) in self.output['ya']; cannot compute mass.")
+            if np.any(Y <= 0):
+                raise ValueError("Encountered non-positive yield(s) in self.output['ya']; cannot compute mass.")
 
-        factor = self.con["rho_crit"] / self.con["s0"]  # [eV]
+            factor = self.con["rho_crit"] / self.con["s0"]  # [eV]
 
-        # Vectorized computation
-        ma_arr = fixed_wa * factor / Y  # [eV]
-        return ma_arr
+            # Vectorized computation
+            ma_arr = fixed_wa * factor / Y  # [eV]
+            return ma_arr
 
     # ----------------------------------------- CHANGE SETTINGS ----------------------------------------- #
     def change_physical_constant(self, physical_constant_name, physical_constant_value):
